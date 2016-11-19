@@ -1,6 +1,14 @@
 """Suppress blank likes from appearing in the output."""
 
+from .base import Plugin
 
-def pre_write(world, line):
-    if not line.get_text().strip():
-        line.gag()
+
+class SuppressBlankLinesPlugin(Plugin):
+    name = 'Suppress Blank Lines'
+    description = 'Suppress blank lines from ever being processed.'
+
+    def pre_write(self, line):
+        text = line.get_text() or ''
+        if not text.strip():
+            line.gag()
+            self.stop()

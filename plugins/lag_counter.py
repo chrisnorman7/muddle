@@ -1,18 +1,28 @@
 """Adds a countlag command which times lag (assuming the server supports the echo command)."""
 
 from time import time
+from .base import Plugin
 
-def plugin_loaded(world):
-    world.started = None
+class LagCounterPlugin(Plugin):
+    name = 'Lag Counter'
+    description = 'Count lag with the lagcounter command (assuming the attached world has a "echo" command.'
 
-def command_entered(world, line):
-    if line.text == 'lagcounter':
-        world.started = time()
-        line.text = 'echo lag.test'
+    def __init__(self, world):
+        super(LagCounterPlugin, self).__init__(world)
+        self.started = None
+        self.cmd = 'lagcounter'
+        self.mud_cmd = 'echo'
+        self.trigger = 'lag.test'
 
+    def command_entered(self, line):
+        if line.text == self.cmd:
+            line.text = '{} {}'.format(self.mud_cmd, self.trigger)
+            self.started = time()
+            self.stop()
 
-def line_received(world, line):
-    if world.started is not None:
-        if line.text == 'lag.test':
-            line.text = 'Lag: %.3f seconds.' % (time() - world.started)
-        world.started = None
+    def line_received(self, line):
+        if self.started is not None:
+            if line.text == self.trigger:
+                line.text = 'Lag: %.3f seconds.' % (time() - self.started)
+            self.started = None
+            self.stop()

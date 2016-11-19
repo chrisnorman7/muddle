@@ -9,7 +9,7 @@ class Config(Section):
         """World configuration."""
         title = 'World'
         name = Option(
-            'Untitled World',
+            '',
             title='World &name',
             validator=validators.RestrictedString(min = 4))
         description = Option(

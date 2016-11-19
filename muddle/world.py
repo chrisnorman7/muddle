@@ -3,12 +3,13 @@
 import logging
 import os
 import os.path
-from json import dump, load
 import application
+from json import dump, load
+from twisted.internet import reactor
 from .config import Config
 from .triggers import Trigger, Alias
 from .protocol import Factory
-from twisted.internet import reactor
+from plugins.base import StopPropagation
 
 world_dir = os.path.join(application.config_dir, 'worlds')
 
@@ -28,10 +29,10 @@ class World:
         self.logger = logging.getLogger('[World]')
         self.log_handler = logging.StreamHandler(self.frame)
         self.logger.addHandler(self.log_handler)
-        self.plugins = {}
-        for plugin in application.plugins.values():
-            if plugin.global_plugin:
-                self.load_plugin(plugin)
+        self._plugins = set()
+        self.plugins = set()
+        for cls in application.global_plugins:
+            self.load_plugin(cls)
 
     def save(self):
         """Save this world."""
@@ -39,7 +40,7 @@ class World:
             raise RuntimeError('Cannot save a world with no name.')
         d = {}
         d['config'] = self.config.json()
-        d['plugins'] = list(self.plugins)
+        d['plugins'] = list(self._plugins)
         d['classes'] = self.classes
         d['triggers'] = []
         for t in self.triggers + self.disabled:
@@ -69,10 +70,10 @@ class World:
         if reset:
             self.clear_things()
             self.classes.clear()
+        plugins = {cls.name: cls for cls in application.plugins}
         for name in data.get('plugins', []):
-            if name in application.plugins:
-                plugin = application.plugins[name]
-                self.load_plugin(plugin)
+            if name in plugins:
+                self.load_plugin(plugins[name])
             else:
                 self.logger.warning('No plugin found matching %s.', name)
         self.classes = data.get('classes', [])
@@ -90,20 +91,24 @@ class World:
             self.logger.info(
                 'Not connecting with no connection configured.')
 
-    def load_plugin(self, plugin):
+    def load_plugin(self, cls):
         """Load the specified plugin onto this world."""
-        name = plugin.__name__
+        name = cls.name
         self.logger.info('Loading plugin %s.', name)
-        self.plugins[name] = plugin
-        plugin.plugin_loaded(self)
+        self._plugins.add(name)
+        plugin = cls(self)
+        self.plugins.add(plugin)
 
     def unload_plugin(self, plugin):
         """Unload the specified plugin from this world."""
-        name = plugin.__name__
-        if name in self.plugins:
-            del self.plugins[name]
-            self.logger.info('Removing plugin %s.', name)
-            plugin.plugin_removed(self)
+        for p in self.plugins:
+            if p is plugin or isinstance(p, plugin):
+                name = p.name
+                self.plugins.remove(p)
+                self.logger.info('Removing plugin %s.', name)
+                if name in self._plugins:
+                    self._plugins.remove(name)
+                break
 
     def connect(self):
         """Conect this world."""
@@ -172,8 +177,14 @@ class World:
 
     def handle_plugins(self, attr, *args, **kwargs):
         """Pass args and kwargs to every plugin on this world with an attribute named attr."""
-        for plugin in self.plugins.values():
-            getattr(plugin, attr, lambda *args, **kwargs: None)(self, *args, **kwargs)
+        for plugin in self.plugins:
+            try:
+                getattr(plugin, attr)(*args, **kwargs)
+            except StopPropagation:
+                break
+            except Exception as e:
+                self.logger.warning('Calling %s(%r, %r) on plugin %s caused a traceback:', attr, args, kwargs, plugin.name)
+                self.logger.exception(e)
 
 
     @property

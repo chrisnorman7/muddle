@@ -2,7 +2,6 @@
 
 import logging
 import wx
-from inspect import getdoc
 from simpleconf.dialogs.wx import SimpleConfWxDialog
 import application
 from ..line import Line
@@ -17,7 +16,7 @@ class MainFrame(wx.Frame):
     def __init__(self, filename=None):
         """Create a new world."""
         self.world = World(self)
-        super(MainFrame, self).__init__(None, title = self.world.name)
+        super(MainFrame, self).__init__(None, title=self.world.name or 'Untitled World')
         p = wx.Panel(self)
         s = wx.BoxSizer(wx.VERTICAL)
         self.entry_label = wx.StaticText(p, label = '&Entry')
@@ -129,24 +128,21 @@ class MainFrame(wx.Frame):
 
     def load_plugins(self, worlds):
         """Load a plugin to 1 or more worlds."""
-        plugin_names = sorted(application.plugins.keys())
+        plugins = sorted(application.plugins, key = lambda plugin: plugin.name)
         dlg = wx.MultiChoiceDialog(
             self,
-            'Select a plugin to load',
+            'Select plugins to load',
             'Plugins',
-            ['{}: {}'.format(name.replace('_', ' ').title(), getdoc(application.plugins[name])) for name in plugin_names])
+            ['{}: {}'.format(cls.name, cls.description) for cls in plugins])
         if dlg.ShowModal() == wx.ID_OK:
             indexes = dlg.GetSelections()
         else:
-            indexes = None
+            indexes = []
         dlg.Destroy()
-        if indexes:
-            for index in indexes:
-                module_name = plugin_names[index]
-                if module_name in application.plugins:
-                    plugin = application.plugins[module_name]
-                    for world in worlds:
-                        world.load_plugin(plugin)
+        for index in indexes:
+            cls = plugins[index]
+            for world in worlds:
+                world.load_plugin(cls)
 
     def load_local_plugin(self, event):
         """Load a plugin to the current world."""
