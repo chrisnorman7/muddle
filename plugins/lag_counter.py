@@ -1,11 +1,14 @@
-"""Adds a countlag command which times lag (assuming the server supports the echo command)."""
+"""Adds a countlag command which times lag (assuming the server supports the
+echo command)."""
 
 from time import time
 from .base import Plugin
 
+
 class LagCounterPlugin(Plugin):
     name = 'Lag Counter'
-    description = 'Count lag with the lagcounter command (assuming the attached world has a "echo" command.'
+    description = 'Count lag with the lagcounter command (assuming the '
+    'attached world has a "echo" command.'
 
     def __init__(self, world):
         super(LagCounterPlugin, self).__init__(world)

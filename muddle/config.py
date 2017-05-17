@@ -11,12 +11,12 @@ class Config(Section):
         name = Option(
             '',
             title='World &name',
-            validator=validators.RestrictedString(min = 4))
+            validator=validators.RestrictedString(min=4))
         description = Option(
             '')
         autosave = Option(
             True, title='&Autosave on exit',
-            validator = validators.Boolean)
+            validator=validators.Boolean)
         option_order = [name, description, autosave]
 
     class connection(Section):

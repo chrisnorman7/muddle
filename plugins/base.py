@@ -1,11 +1,13 @@
 """Contains the Plugin class."""
 
+from attr import attrs, attrib
+
 
 class StopPropagation(StopIteration):
     """Stop hook propagation this round."""
 
 
-
+@attrs
 class Plugin:
     """
     A worl plugin.
@@ -17,13 +19,12 @@ class Plugin:
     the plugin machinery.
     """
 
+    world = attrib()
     name = 'Generic Plugin'
     description = 'This plugin needs a proper description.'
 
-    def __init__(self, world):
-        """Set self.world to world. That is the only initialisation which is
-        performed."""
-        self.world = world
+    def __attrs_post_init__(self):
+        self.world.logger.info('Initialised: %r.', self)
 
     def stop(self, message=None):
         """Stop any future plugins from running."""

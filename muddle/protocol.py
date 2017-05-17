@@ -13,13 +13,20 @@ class Protocol(LineReceiver):
         self.world = world
         world.protocol = self
 
-    def log(self, message, level = 'info', *args, **kwargs):
+    def log(self, message, level='info', *args, **kwargs):
         """Log a message."""
         logger = self.world.logger
         if hasattr(logger, level):
             getattr(logger, level)(message, *args, **kwargs)
         else:
-            logger.critical('Could not log message %r with args %r and kwargs %r because there is no such level %r.', message, args, kwargs, level)
+            logger.critical(
+                'Could not log message %r with args %r and kwargs %r because '
+                'there is no such level %r.',
+                message,
+                args,
+                kwargs,
+                level
+            )
 
     def connectionMade(self):
         """Connected."""
@@ -32,7 +39,7 @@ class Protocol(LineReceiver):
         for trigger in self.world.triggers:
             m = trigger.match(line)
             if m:
-                if m == True:
+                if m is True:
                     args = []
                     kwargs = []
                 else:

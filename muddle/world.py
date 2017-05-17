@@ -55,11 +55,13 @@ class World:
         with open(
             os.path.join(
                 world_dir,
-                self.name + '.world'),
-            'w') as f:
-            dump(d, f, indent = 4)
+                self.name + '.world'
+            ),
+            'w'
+        ) as f:
+            dump(d, f, indent=4)
 
-    def load(self, filename, reset = True):
+    def load(self, filename, reset=True):
         """Load a world from filename."""
         with open(filename, 'r') as f:
             data = load(f)
@@ -131,7 +133,8 @@ class World:
         return not classes or [c for c in classes if c in self.classes]
 
     def add(self, thing):
-        """Add thing to the appropriate attribute of self. Just does self.enable for the time being."""
+        """Add thing to the appropriate attribute of self. Just does
+        self.enable for the time being."""
         self.enable(thing)
 
     def enable(self, thing):
@@ -161,11 +164,13 @@ class World:
         for attr in [
             self.triggers,
             self.aliases,
-            self.disabled]:
+            self.disabled
+        ]:
             attr.clear()
 
     def update(self):
-        """Update triggers and aliases, taking into account self.check_classes."""
+        """Update triggers and aliases, taking into account
+        self.check_classes."""
         things = self.aliases + self.triggers + self.disabled
         self.clear_things()
         for thing in things:
@@ -176,16 +181,22 @@ class World:
         reactor.callFromThread(self.protocol.sendLine, line.encode())
 
     def handle_plugins(self, attr, *args, **kwargs):
-        """Pass args and kwargs to every plugin on this world with an attribute named attr."""
+        """Pass args and kwargs to every plugin on this world with an
+        attribute named attr."""
         for plugin in self.plugins:
             try:
                 getattr(plugin, attr)(*args, **kwargs)
             except StopPropagation:
                 break
             except Exception as e:
-                self.logger.warning('Calling %s(%r, %r) on plugin %s caused a traceback:', attr, args, kwargs, plugin.name)
+                self.logger.warning(
+                    'Calling %s(%r, %r) on plugin %s caused a traceback:',
+                    attr,
+                    args,
+                    kwargs,
+                    plugin.name
+                )
                 self.logger.exception(e)
-
 
     @property
     def name(self):

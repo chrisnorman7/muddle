@@ -12,6 +12,6 @@ class StripColoursPlugin(Plugin):
     description = 'Strip colour tags from the output.'
 
     def line_received(world, line):
-        text =line.get_text()
+        text = line.get_text()
         if text:
             line.text = re.sub(colour_re, '', text)

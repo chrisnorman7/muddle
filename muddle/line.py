@@ -1,36 +1,43 @@
 """A line class."""
 
+from attr import attrs, attrib, Factory
+
+
+@attrs
 class Line:
-    def __init__(self, text):
-        """Initialise the line."""
+    """A generic line."""
+    text = attrib()
+    _gag = attrib(default=Factory(lambda: False), init=False)
+    _sub = attrib(default=Factory(lambda: False), init=False)
+
+    def __attrs_post_init__(self):
         try:
-            text = str(text.decode(errors = 'ignore'))
+            self.text = str(self.text.decode(errors='ignore'))
         except AttributeError:
-            pass # Not needed.
-        self.text = text
+            pass  # Not needed.
         self._gag = False
         self._sub = None
-    
+
     def gag(self):
         """Gag the received text."""
         self._gag = True
-    
+
     def ungag(self):
         """Ungag the text."""
         self._gag = False
-    
+
     def gagged(self):
         """Return whether the text is gagged."""
         return self._gag
-    
+
     def substitute(self, text):
         """Substitute the actual text with the provided text."""
         self._sub = text
-    
-    def unsusbstitute(self):
+
+    def unsubstitute(self):
         """Remove any substitution."""
         self._sub = None
-    
+
     def substituted(self):
         """Return whether the text is substituted or not."""
         return self._sub is not None

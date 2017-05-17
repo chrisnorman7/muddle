@@ -2,7 +2,12 @@
 
 if __name__ == '__main__':
     from default_argparse import parser
-    parser.add_argument('world', metavar='<world-file', nargs='?', help='The world file to load into the first window')
+    parser.add_argument(
+        'world',
+        metavar='WORLD-FILE',
+        nargs='?',
+        help='The world file to load into the first window'
+    )
     args = parser.parse_args()
     import logging
     logging.basicConfig(
@@ -10,13 +15,17 @@ if __name__ == '__main__':
         level=args.log_level,
         format=args.log_format)
     import application
-    logging.info('Starting %s, version %s.', application.name, application.__version__)
+    logging.info(
+        'Starting %s, version %s.',
+        application.name,
+        application.__version__
+    )
     from twisted.internet import reactor
     application.reload_plugins()
     from muddle.gui.main_frame import MainFrame
     from threading import Thread
     Thread(target=reactor.run, args=[False]).start()
-    frame = MainFrame(filename = args.world)
+    frame = MainFrame(filename=args.world)
     application.app.MainLoop()
     reactor.callFromThread(reactor.stop)
     for window in application.windows:

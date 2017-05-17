@@ -6,11 +6,13 @@ from muddle.accessibility import system
 
 class SpeakLinePlugin(Plugin):
     name = 'Speak Lines'
-    description = 'Automatically speak lines before they are printed. Can be avoided by setting a dont_speak attribute.'
+    description = 'Automatically speak lines before they are printed. Can be '
+    'avoided by setting a dont_speak attribute.'
 
     def pre_write(self, line):
         text = line.get_text()
-        if text is not None and not getattr(line, 'dont_speak', False):  # Ignore gagged lines.
+        # Ignore gagged lines:
+        if text is not None and not getattr(line, 'dont_speak', False):
             text = text.strip()
             if text:
                 system.speak(text)

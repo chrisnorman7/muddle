@@ -1,29 +1,26 @@
 """Triggers and aliases."""
 
 import re
+from attr import attrs, attrib, Factory
 from lupa import LuaRuntime
 
 lua = LuaRuntime()
 
 
+@attrs
 class Trigger:
     """A trigger."""
-    def __init__(
-        self,
-        world,
-        name=None,
-        pattern=None,
-        regexp=True,
-        code='',
-        literal=False,
-        classes=[]):
-        """Initialise the trigger."""
-        self.world = world
-        self.name = name
-        self.regexp = regexp
-        self.code = code
-        self.literal = literal
-        self.classes = classes
+
+    world = attrib()
+    name = attrib(default=Factory(lambda: None))
+    pattern = attrib(default=Factory(lambda: None))
+    regexp = attrib(default=Factory(lambda: True))
+    code = attrib(default=Factory(str))
+    literal = attrib(default=Factory(bool))
+    classes = attrib(default=Factory(list))
+
+    def __attrs_post_init__(self):
+        """Finish initialising the trigger."""
         self.update()
 
     def match(self, line):
@@ -45,7 +42,11 @@ class Trigger:
         if self.literal:
             self._func = None
         else:
-            self._func = lua.eval('function(trigger, line, args, kwargs)\n{}\nend'.format(self.code))
+            self._func = lua.eval(
+                'function(trigger, line, args, kwargs)\n{}\nend'.format(
+                    self.code
+                )
+            )
 
     def run(self, line, *args, **kwargs):
         """Run the code of this trigger with line, args and kwargs."""
@@ -70,6 +71,7 @@ class Alias(Trigger):
     An alias.
 
     The pattern attribute is used as the calling line.
-    Using the gag method on a line with the function stops the alias from reaching the MUD.
+    Using the gag method on a line with the function stops the alias from
+    reaching the MUD.
     """
     pass

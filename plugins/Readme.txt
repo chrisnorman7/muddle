@@ -6,6 +6,7 @@ Here is an example of creating a plugin with no functionality:
 
 from .base import Plugin  # Remember we are using Python 3.
 
+
 class MyPlugin(Plugin):
     name = 'My Plugin'
     description = 'A featureless plugin.'

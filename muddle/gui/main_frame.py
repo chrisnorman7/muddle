@@ -16,19 +16,22 @@ class MainFrame(wx.Frame):
     def __init__(self, filename=None):
         """Create a new world."""
         self.world = World(self)
-        super(MainFrame, self).__init__(None, title=self.world.name or 'Untitled World')
+        super(MainFrame, self).__init__(
+            None,
+            title=self.world.name or 'Untitled World'
+        )
         p = wx.Panel(self)
         s = wx.BoxSizer(wx.VERTICAL)
-        self.entry_label = wx.StaticText(p, label = '&Entry')
-        self.entry = wx.TextCtrl(p, style = wx.TE_RICH | wx.TE_PROCESS_ENTER)
+        self.entry_label = wx.StaticText(p, label='&Entry')
+        self.entry = wx.TextCtrl(p, style=wx.TE_RICH | wx.TE_PROCESS_ENTER)
         self.entry.Bind(wx.EVT_TEXT_ENTER, self.do_send)
         s.AddMany(
             [
                 (self.entry_label, 0, wx.GROW),
                 (self.entry, 1, wx.GROW)])
         s1 = wx.BoxSizer(wx.VERTICAL)
-        self.output_label = wx.StaticText(p, label = '&Output')
-        self.output = wx.TextCtrl(p, style = wx.TE_MULTILINE | wx.TE_READONLY)
+        self.output_label = wx.StaticText(p, label='&Output')
+        self.output = wx.TextCtrl(p, style=wx.TE_MULTILINE | wx.TE_READONLY)
         s1.AddMany(
             [
                 (self.output_label, 0, wx.GROW),
@@ -38,19 +41,53 @@ class MainFrame(wx.Frame):
         application.windows.append(self)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.file_menu = wx.Menu()
-        self.add_menu_item(self.file_menu, 'E&xit', lambda event: self.Close(True), id = wx.ID_EXIT)
+        self.add_menu_item(
+            self.file_menu,
+            'E&xit',
+            lambda event: self.Close(True),
+            id=wx.ID_EXIT
+        )
         self.world_menu = wx.Menu()
-        self.add_menu_item(self.world_menu, '&Save', lambda event: self.world.save(), id = wx.ID_SAVE)
-        self.add_menu_item(self.world_menu, '&Load...', self.do_load, id = wx.ID_OPEN)
+        self.add_menu_item(
+            self.world_menu,
+            '&Save',
+            lambda event: self.world.save(),
+            id=wx.ID_SAVE
+        )
+        self.add_menu_item(
+            self.world_menu,
+            '&Load...',
+            self.do_load,
+            id=wx.ID_OPEN
+        )
         self.add_menu_item(self.world_menu, '&Connect', self.do_connect)
         self.add_menu_item(self.world_menu, '&Disconnect', self.do_disconnect)
         self.plugins_menu = wx.Menu()
-        self.add_menu_item(self.plugins_menu, 'Load &World Plugin...', self.load_local_plugin)
-        self.add_menu_item(self.plugins_menu, 'Load &Global Plugin...', self.load_global_plugin)
-        self.add_menu_item(self.plugins_menu, '&Reload', lambda event: application.reload_plugins())
+        self.add_menu_item(
+            self.plugins_menu,
+            'Load &World Plugin...',
+            self.load_local_plugin
+        )
+        self.add_menu_item(
+            self.plugins_menu,
+            'Load &Global Plugin...',
+            self.load_global_plugin
+        )
+        self.add_menu_item(
+            self.plugins_menu,
+            '&Reload',
+            lambda event: application.reload_plugins()
+        )
         self.preferences_menu = wx.Menu()
         for section in self.world.config.section_order:
-            self.add_menu_item(self.preferences_menu, '&%s' % section.title, lambda event, section = section: SimpleConfWxDialog(section, parent = self).Show(True))
+            self.add_menu_item(
+                self.preferences_menu,
+                '&%s' % section.title,
+                lambda event, section=section: SimpleConfWxDialog(
+                    section,
+                    parent=self
+                ).Show(True)
+            )
         self.world_menu.AppendSubMenu(self.preferences_menu, '&Preferences')
         self.menubar = wx.MenuBar()
         self.menubar.Append(self.file_menu, '&File')
@@ -64,9 +101,11 @@ class MainFrame(wx.Frame):
 
     def on_close(self, event):
         """Window is about to close."""
-        if self.world.connected:
-            reactor.callFromThread(self.world.protocol.transport.loseConnection)
         event.Skip()
+        if self.world.connected:
+            reactor.callFromThread(
+                self.world.protocol.transport.loseConnection
+            )
 
     def write(self, text):
         """Write some text to the output window."""
@@ -77,7 +116,7 @@ class MainFrame(wx.Frame):
                 logger.exception(e)
         wx.CallAfter(f, text)
 
-    def add_menu_item(self, menu, name, handler, description = '', id = None):
+    def add_menu_item(self, menu, name, handler, description='', id=None):
         """Add a new item to menu, binding in the process."""
         if id is None:
             id = wx.NewId()
@@ -128,7 +167,7 @@ class MainFrame(wx.Frame):
 
     def load_plugins(self, worlds):
         """Load a plugin to 1 or more worlds."""
-        plugins = sorted(application.plugins, key = lambda plugin: plugin.name)
+        plugins = sorted(application.plugins, key=lambda plugin: plugin.name)
         dlg = wx.MultiChoiceDialog(
             self,
             'Select plugins to load',
@@ -150,7 +189,9 @@ class MainFrame(wx.Frame):
 
     def load_global_plugin(self, event):
         """Load a plugin to every world."""
-        return self.load_plugins([window.world for window in application.windows])
+        return self.load_plugins(
+            [window.world for window in application.windows]
+        )
 
     def do_send(self, event):
         """Send a line to the MUD."""
@@ -158,7 +199,7 @@ class MainFrame(wx.Frame):
         try:
             self.world.handle_plugins('command_entered', line)
             if line.gagged():
-                return # Go no further.
+                return  # Go no further.
             for alias in self.world.aliases:
                 m = alias.match(line)
                 if m:
