@@ -3,9 +3,10 @@
 import logging
 import os
 import os.path
-import application
 from json import dump, load
+from attr import attrs, attrib, Factory as AttrsFactory
 from twisted.internet import reactor
+import application
 from .config import Config
 from .triggers import Trigger, Alias
 from .protocol import Factory
@@ -14,18 +15,20 @@ from plugins.base import StopPropagation
 world_dir = os.path.join(application.config_dir, 'worlds')
 
 
+@attrs
 class World:
     """An instance of a world."""
-    def __init__(self, frame):
-        """Initialise the world with a frame."""
-        self.frame = frame
-        self.config = Config()
-        self.triggers = []
-        self.aliases = []
-        self.disabled = []
-        self.classes = []
+
+    frame = attrib()
+    config = attrib(default=AttrsFactory(Config))
+    triggers = attrib(default=AttrsFactory(list))
+    aliases = attrib(default=AttrsFactory(list))
+    disabled = attrib(default=AttrsFactory(list))
+    classes = attrib(default=AttrsFactory(list))
+    protocol = attrib(default=AttrsFactory(lambda: None))
+
+    def __attrs_post_init__(self):
         self.factory = Factory(self)
-        self.protocol = None
         self.logger = logging.getLogger('[World]')
         self.log_handler = logging.StreamHandler(self.frame)
         self.logger.addHandler(self.log_handler)
